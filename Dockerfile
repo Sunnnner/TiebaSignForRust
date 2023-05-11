@@ -9,7 +9,7 @@ WORKDIR /usr/src/myapp
 ADD . .
 
 RUN cargo build --release
-RUN strip target/release/myapp
+# RUN strip /usr/src/myapp/target/release/myapp
 
 FROM alpine:3.14.3
 COPY --from=builder /usr/src/myapp/target/release/myapp /myapp
