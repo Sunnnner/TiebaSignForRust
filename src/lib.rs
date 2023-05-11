@@ -70,7 +70,7 @@ pub struct ClientSignData {
 }
 
 impl ClientSignData {
-    pub fn new(
+    pub async fn new(
         bduss: &str,
         fid: &str,
         kw: &str,
@@ -92,15 +92,15 @@ impl ClientSignData {
     }
 }
 
-fn get_now_time() -> Result<String> {
+async fn get_now_time() -> Result<String> {
     Ok(SystemTime::now()
         .duration_since(UNIX_EPOCH)?
         .as_secs()
         .to_string())
 }
 
-pub fn get_hash_map(bd: String) -> Result<HashMap<&'static str, String>> {
-    let now_time = get_now_time()?;
+pub async fn get_hash_map(bd: String) -> Result<HashMap<&'static str, String>> {
+    let now_time = get_now_time().await?;
     let mut data = HashMap::new();
     data.insert("BDUSS", bd);
     data.insert("_client_id", "wappc_1593576610335_488".to_string());

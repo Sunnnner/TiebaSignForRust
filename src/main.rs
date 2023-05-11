@@ -48,7 +48,7 @@ async fn get_tbs(url: reqwest::Url, bduss: &str) -> Result<Tbs> {
 }
 
 async fn get_favorite(bduss: &str) -> Result<Vec<serde_json::Value>> {
-    let mut data = get_hash_map(bduss.to_string())?;
+    let mut data = get_hash_map(bduss.to_string()).await?;
     let sign = encode_data(&data)?;
     data.insert("sign", sign);
     let client = re_client::new();
@@ -96,7 +96,7 @@ async fn client_sign(bduss: &str, tbs: &str, fid: &str, kw: &str) -> Result<()> 
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap()
         .as_secs();
-    let data = ClientSignData::new(bduss, tbs, fid, kw, now_time);
+    let data = ClientSignData::new(bduss, tbs, fid, kw, now_time).await?;
     let client = re_client::new();
     let _res = client
         .post("http://c.tieba.baidu.com/c/c/forum/sign")
