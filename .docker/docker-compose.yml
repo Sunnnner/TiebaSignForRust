@@ -1,0 +1,8 @@
+version: "3"
+services:
+  sign:
+    image: sign:latest
+    container_name: sign
+    restart: always
+    environment:
+      - BDUSS=${BDUSS}
