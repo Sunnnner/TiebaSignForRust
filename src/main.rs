@@ -65,10 +65,8 @@ async fn get_favorite(bduss: &str) -> Result<Vec<serde_json::Value>> {
     let body = req.text().await?;
     let mut return_data: serde_json::Value = serde_json::from_str(&body)?;
     let mut t: Vec<serde_json::Value> = Vec::new();
-    println!("{}", body);
-    println!("{:?}", return_data);
-    if return_data.is_null() {
-        return Ok(t);
+    if return_data["has_more"].is_null() {
+        Ok(t)
     } else {
         let forum_list = return_data["forum_list"]
             .as_object_mut()
