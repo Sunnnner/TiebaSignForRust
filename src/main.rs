@@ -39,7 +39,7 @@ async fn get_tbs(url: reqwest::Url, bduss: &str) -> Result<Tbs> {
     let client = re_client::builder().default_headers(headers).build()?;
     let req = client
         .post(url)
-        .timeout(std::time::Duration::from_secs(5))
+        .timeout(std::time::Duration::from_secs(60))
         .send()
         .await?;
     let body = req.text().await?;
@@ -54,7 +54,7 @@ async fn get_favorite(bduss: &str) -> Result<Vec<serde_json::Value>> {
     let client = re_client::new();
     let req = client
         .post("http://c.tieba.baidu.com/c/f/forum/like")
-        .timeout(std::time::Duration::from_secs(5))
+        .timeout(std::time::Duration::from_secs(60))
         .form(&data)
         .send()
         .await?;
@@ -101,7 +101,7 @@ async fn client_sign(bduss: &str, tbs: &str, fid: &str, kw: &str) -> Result<()> 
     let _res = client
         .post("http://c.tieba.baidu.com/c/c/forum/sign")
         .form(&data)
-        .timeout(std::time::Duration::from_secs(5))
+        .timeout(std::time::Duration::from_secs(60))
         .send()
         .await?;
     Ok(())
