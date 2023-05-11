@@ -12,6 +12,10 @@ async fn main() -> Result<()> {
     let url = tbs_url.parse::<reqwest::Url>().unwrap();
     let tbs = get_tbs(url, &bduss).await?;
     let favorite = get_favorite(&bduss).await?;
+    if favorite.is_empty() {
+        eprintln!("favorite is empty");
+        return Ok(());
+    }
     let futures = favorite.into_iter().map(|i| {
         let bduss = bduss.to_owned();
         let user_id = i["id"].to_string();
@@ -61,34 +65,40 @@ async fn get_favorite(bduss: &str) -> Result<Vec<serde_json::Value>> {
     let body = req.text().await?;
     let mut return_data: serde_json::Value = serde_json::from_str(&body)?;
     let mut t: Vec<serde_json::Value> = Vec::new();
-    let forum_list = return_data["forum_list"]
-        .as_object_mut()
-        .ok_or_else(|| serde_json::Error::custom("forum_list not found"))?;
-    forum_list
-        .entry("non-gconforum".to_string())
-        .or_insert_with(|| serde_json::Value::Array(Vec::new()));
-    forum_list
-        .entry("gconforum".to_string())
-        .or_insert_with(|| serde_json::Value::Array(Vec::new()));
 
-    for forum_type in ["non-gconforum", "gconforum"].iter() {
-        let forum_array = forum_list
-            .get_mut(*forum_type)
-            .unwrap()
-            .as_array_mut()
-            .ok_or_else(|| serde_json::Error::custom(format!("{} is not an array", forum_type)))?;
-        for forum in forum_array.iter_mut() {
-            if let Some(forum_array) = forum.as_array_mut() {
-                for subforum in forum_array.iter_mut() {
-                    t.push(subforum.take());
+    if return_data.is_null() {
+        return Ok(t);
+    } else {
+        let forum_list = return_data["forum_list"]
+            .as_object_mut()
+            .ok_or_else(|| serde_json::Error::custom("forum_list not found"))?;
+        forum_list
+            .entry("non-gconforum".to_string())
+            .or_insert_with(|| serde_json::Value::Array(Vec::new()));
+        forum_list
+            .entry("gconforum".to_string())
+            .or_insert_with(|| serde_json::Value::Array(Vec::new()));
+
+        for forum_type in ["non-gconforum", "gconforum"].iter() {
+            let forum_array = forum_list
+                .get_mut(*forum_type)
+                .unwrap()
+                .as_array_mut()
+                .ok_or_else(|| {
+                    serde_json::Error::custom(format!("{} is not an array", forum_type))
+                })?;
+            for forum in forum_array.iter_mut() {
+                if let Some(forum_array) = forum.as_array_mut() {
+                    for subforum in forum_array.iter_mut() {
+                        t.push(subforum.take());
+                    }
+                } else {
+                    t.push(forum.take());
                 }
-            } else {
-                t.push(forum.take());
             }
         }
+        Ok(t)
     }
-
-    Ok(t)
 }
 
 async fn client_sign(bduss: &str, tbs: &str, fid: &str, kw: &str) -> Result<()> {
