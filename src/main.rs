@@ -8,7 +8,7 @@ use tokio::task;
 #[tokio::main]
 async fn main() -> Result<()> {
     let tbs_url = String::from("http://tieba.baidu.com/dc/common/tbs");
-    let bduss = std::env::var("BDUSS").expect("BDUSS not found in env");
+    let bduss = std::env::var("BDUSS").expect("BDUSS not found");
     let url = tbs_url.parse::<reqwest::Url>().unwrap();
     let tbs = get_tbs(url, &bduss).await?;
     let favorite = get_favorite(&bduss).await?;
@@ -37,7 +37,11 @@ async fn get_tbs(url: reqwest::Url, bduss: &str) -> Result<Tbs> {
         header::HeaderValue::from_str(&("BDUSS=".to_owned() + bduss)).unwrap(),
     );
     let client = re_client::builder().default_headers(headers).build()?;
-    let req = client.post(url).send().await?;
+    let req = client
+        .post(url)
+        .timeout(std::time::Duration::from_secs(5))
+        .send()
+        .await?;
     let body = req.text().await?;
     let tbs: Tbs = serde_json::from_str(&body)?;
     Ok(tbs)
@@ -47,15 +51,16 @@ async fn get_favorite(bduss: &str) -> Result<Vec<serde_json::Value>> {
     let mut data = get_hash_map(bduss.to_string())?;
     let sign = encode_data(&data)?;
     data.insert("sign", sign);
-    let req = re_client::new()
+    let client = re_client::new();
+    let req = client
         .post("http://c.tieba.baidu.com/c/f/forum/like")
+        .timeout(std::time::Duration::from_secs(5))
         .form(&data)
         .send()
         .await?;
     let body = req.text().await?;
     let mut return_data: serde_json::Value = serde_json::from_str(&body)?;
     let mut t: Vec<serde_json::Value> = Vec::new();
-
     let forum_list = return_data["forum_list"]
         .as_object_mut()
         .ok_or_else(|| serde_json::Error::custom("forum_list not found"))?;
