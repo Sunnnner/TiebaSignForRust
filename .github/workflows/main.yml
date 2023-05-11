@@ -1,0 +1,23 @@
+name: 'Baidu Tieba Auto Sign'
+
+on:
+  schedule:
+    - cron: '13 17,23 * * *'
+  workflow_dispatch:
+
+jobs:
+  tieba_sign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout codes'
+        uses: actions/checkout@v2
+      - name: 'Set rust cargo'
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: 'install toml'
+        run: cargo build --release
+      - name: 'Start Sign'
+        env:
+          BDUSS: ${{ secrets.BDUSS }}
+        run: cargo run --release
