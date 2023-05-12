@@ -25,11 +25,14 @@ fn get_client(bduss: &str) -> Result<re_client> {
 async fn main() -> Result<()> {
     let bduss = std::env::var("BDUSS").expect("BDUSS not found");
     let tbs = get_tbs(&bduss).await?;
-    let favorite = get_favorite(&bduss).await?;
-    if favorite.is_empty() {
-        eprintln!("favorite is empty");
-        return Ok(());
-    }
+    let favorite = get_favorite(&bduss).await;
+    let favorite = match favorite {
+        Ok(favorite) => favorite,
+        Err(e) => {
+            println!("获取关注贴吧失败: {}", e);
+            return Ok(());
+        }
+    };
     for i in favorite {
         let bduss = bduss.to_owned();
         let tbs_data = tbs.tbs.to_string();
