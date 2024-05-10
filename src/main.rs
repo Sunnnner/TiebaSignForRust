@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
     let favorite = match favorite {
         Ok(favorite) => favorite,
         Err(e) => {
-            println!("获取关注贴吧失败: {}", e);
+            info!("获取关注贴吧失败: {:?}", e);
             return Ok(());
         }
     };
